@@ -13,20 +13,25 @@ in XML.
 import json
 import logging
 
+from HTMLParser import HTMLParser
 from lxml import etree
 from pkg_resources import resource_string
 import datetime
-import time
 import copy
+from webob import Response
 
 from django.http import Http404
 from django.conf import settings
 
-from xmodule.x_module import XModule
+from xmodule.x_module import XModule, module_attr
 from xmodule.editing_module import TabsEditingDescriptor
 from xmodule.raw_module import EmptyDataRawDescriptor
 from xmodule.xml_module import is_pointer_tag, name_to_pathname, deserialize_field
 from xmodule.modulestore import Location
+from xmodule.contentstore.django import contentstore
+from xmodule.contentstore.content import StaticContent
+from xmodule.exceptions import NotFoundError
+from xblock.core import XBlock
 from xblock.fields import Scope, String, Boolean, List, Integer, ScopeIds
 from xmodule.fields import RelativeTime
 
@@ -171,7 +176,7 @@ class VideoModule(VideoFields, XModule):
             'id': self.location.html_id(),
             'sub': self.sub,
             'sources': sources,
-            'track': self.track,
+            'track': self.runtime.handler_url(self, 'download_transcript').rstrip('/?'),
             'display_name': self.display_name_with_default,
             # This won't work when we move to data that
             # isn't on the filesystem
@@ -187,10 +192,47 @@ class VideoModule(VideoFields, XModule):
             'yt_test_url': settings.YOUTUBE_TEST_URL
         })
 
+    def get_transcript(self, subs_id):
+        data = self.get_transcript_file_data(subs_id)
+
+        try:
+            text = json.loads(data)['text']
+        except ValueError:
+            log.debug("Invalid transcript JSON.")
+            return Response(status=400)
+
+        return HTMLParser().unescape("\n".join(text))
+
+    def get_transcript_file_data(self, subs_id):
+        filename = 'subs_{0}.srt.sjson'.format(subs_id)
+        content_location = StaticContent.compute_location(
+            self.location.org, self.location.course, filename
+        )
+
+        try:
+            sjson_transcript = contentstore().find(content_location)
+            return sjson_transcript.data
+        except NotFoundError:
+            log.debug("Can't find content in storage for %s transcript", subs_id)
+            raise Response(status=404)
+
+
+    @XBlock.handler
+    def download_transcript(self, _ , __):
+        """
+        This is called to get transcript file without timecodes to student.
+        """
+        subs = self.get_transcript(self.sub)
+
+        return Response(subs, content_type='text/plain', headerlist=[
+                ('Content-Disposition', 'attachment; name="{0}.txt"'.format(self.sub))
+            ])
+
 
 class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor):
     """Descriptor for `VideoModule`."""
     module_class = VideoModule
+    download_transcript = module_attr('download_transcript')
 
     tabs = [
         {
