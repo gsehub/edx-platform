@@ -20,7 +20,7 @@ import datetime
 import copy
 from webob import Response
 
-from django.http import Http404
+from django.http import Http404, HttpResponseBadRequest
 from django.conf import settings
 
 from xmodule.x_module import XModule, module_attr
@@ -33,7 +33,7 @@ from xmodule.contentstore.content import StaticContent
 from xmodule.exceptions import NotFoundError
 from xblock.core import XBlock
 from xblock.fields import Scope, String, Boolean, List, Integer, ScopeIds
-from xmodule.fields import RelativeTime
+from xmodule.fields import RelativeTime, Checkbox
 
 from xmodule.modulestore.inheritance import InheritanceKeyValueStore
 from xblock.runtime import DbModel
@@ -109,11 +109,13 @@ class VideoFields(object):
         display_name="Video Sources",
         scope=Scope.settings,
     )
-    track = String(
-        help="The external URL to download the timed transcript track. This appears as a link beneath the video.",
+    track = Checkbox(
+        help="Allow to download the timed transcript track. This appears as a link beneath the video.",
         display_name="Download Transcript",
         scope=Scope.settings,
-        default=""
+        values=[
+            {"value": "true"}
+        ]
     )
     sub = String(
         help="The name of the timed transcript track (for non-Youtube videos).",
@@ -171,12 +173,17 @@ class VideoModule(VideoFields, XModule):
         sources = {get_ext(src): src for src in self.html5_sources}
         sources['main'] = self.source
 
+        if self.track and self.sub:
+            track_url = self.runtime.handler_url(self, 'download_transcript').rstrip('/?')
+        else:
+            track_url = None
+
         return self.system.render_template('video.html', {
             'youtube_streams': _create_youtube_string(self),
             'id': self.location.html_id(),
             'sub': self.sub,
             'sources': sources,
-            'track': self.runtime.handler_url(self, 'download_transcript').rstrip('/?'),
+            'track': track_url,
             'display_name': self.display_name_with_default,
             # This won't work when we move to data that
             # isn't on the filesystem
@@ -199,7 +206,7 @@ class VideoModule(VideoFields, XModule):
             text = json.loads(data)['text']
         except ValueError:
             log.debug("Invalid transcript JSON.")
-            return Response(status=400)
+            raise HttpResponseBadRequest()
 
         return HTMLParser().unescape("\n".join(text))
 
@@ -214,7 +221,7 @@ class VideoModule(VideoFields, XModule):
             return sjson_transcript.data
         except NotFoundError:
             log.debug("Can't find content in storage for %s transcript", subs_id)
-            raise Response(status=404)
+            raise Http404()
 
 
     @XBlock.handler
@@ -414,7 +421,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
         sources = xml.findall('source')
         if sources:
             field_data['html5_sources'] = [ele.get('src') for ele in sources]
-            field_data['source'] = field_data['html5_sources'][0]
+            field_data['source'] = ['true']
 
         track = xml.find('track')
         if track is not None:
