@@ -20,7 +20,7 @@ import datetime
 import copy
 from webob import Response
 
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404
 from django.conf import settings
 
 from xmodule.x_module import XModule, module_attr
@@ -200,39 +200,46 @@ class VideoModule(VideoFields, XModule):
         })
 
     def get_transcript(self, subs_id):
-        data = self.get_transcript_file_data(subs_id)
+        '''
+        Returns transcript without timecodes.
 
-        try:
-            text = json.loads(data)['text']
-        except ValueError:
-            log.debug("Invalid transcript JSON.")
-            raise HttpResponseBadRequest()
+        Args:
+            `subs_id`: str, subtitles id
 
-        return HTMLParser().unescape("\n".join(text))
+        Raises:
+            - NotFoundError if cannot find transcript file in storage.
+            - ValueError if transcript file is incorrect JSON.
+            - KeyError if transcript file has incorrect format.
+        '''
 
-    def get_transcript_file_data(self, subs_id):
         filename = 'subs_{0}.srt.sjson'.format(subs_id)
         content_location = StaticContent.compute_location(
             self.location.org, self.location.course, filename
         )
 
-        try:
-            sjson_transcript = contentstore().find(content_location)
-            return sjson_transcript.data
-        except NotFoundError:
-            log.debug("Can't find content in storage for %s transcript", subs_id)
-            raise Http404()
+        data = contentstore().find(content_location).data
+        text = json.loads(data)['text']
+
+        return HTMLParser().unescape("\n".join(text))
 
 
     @XBlock.handler
-    def download_transcript(self, _ , __):
+    def download_transcript(self, __, ___):
         """
         This is called to get transcript file without timecodes to student.
         """
-        subs = self.get_transcript(self.sub)
+        try:
+            subs = self.get_transcript(self.sub)
+        except (NotFoundError):
+            log.debug("Can't find content in storage for %s transcript", self.sub)
+            return Response(status=404)
+        except (ValueError, KeyError):
+            log.debug("Invalid transcript JSON.")
+            return Response(status=400)
 
-        return Response(subs, content_type='text/plain', headerlist=[
-                ('Content-Disposition', 'attachment; name="{0}.txt"'.format(self.sub))
+        return Response(subs, content_type='text/plain',
+            headerlist=[
+                ('Content-Disposition', 'attachment; name="{}.txt"'.format(self.sub))
             ])
 
 
@@ -313,6 +320,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
             'start_time': self.start_time,
             'end_time': self.end_time,
             'sub': self.sub,
+            'track': self.track,
         }
         for key, value in attrs.items():
             # Mild workaround to ensure that tests pass -- if a field
@@ -326,10 +334,6 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
             ele.set('src', source)
             xml.append(ele)
 
-        if self.track:
-            ele = etree.Element('track')
-            ele.set('src', self.track)
-            xml.append(ele)
         return xml
 
     def get_context(self):
@@ -421,7 +425,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
         sources = xml.findall('source')
         if sources:
             field_data['html5_sources'] = [ele.get('src') for ele in sources]
-            field_data['source'] = ['true']
+            field_data['source'] = field_data['html5_sources'][0]
 
         track = xml.find('track')
         if track is not None:
