@@ -35,7 +35,6 @@ SOURCE_XML = """
     >
         <source src="example.mp4"/>
         <source src="example.webm"/>
-        <source src="example.ogv"/>
     </video>
 """
 
@@ -73,7 +72,6 @@ class VideoModuleUnitTest(unittest.TestCase):
             'main': 'example.mp4',
             'mp4': 'example.mp4',
             'webm': 'example.webm',
-            'ogv': 'example.ogv'
         }
 
         expected_context = {
