@@ -167,6 +167,7 @@ class VideoModule(VideoFields, XModule):
         raise Http404()
 
     def get_html(self):
+        track_url = None
         caption_asset_path = "/static/subs/"
 
         get_ext = lambda filename: filename.rpartition('.')[-1]
@@ -175,8 +176,6 @@ class VideoModule(VideoFields, XModule):
 
         if self.track and self.sub:
             track_url = self.runtime.handler_url(self, 'download_transcript').rstrip('/?')
-        else:
-            track_url = None
 
         return self.system.render_template('video.html', {
             'youtube_streams': _create_youtube_string(self),
@@ -429,7 +428,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
 
         track = xml.find('track')
         if track is not None:
-            field_data['track'] = track.get('src')
+            field_data['track'] = ['true']
 
         for attr, value in xml.items():
             if attr in compat_keys:
