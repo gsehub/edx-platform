@@ -267,6 +267,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
             'start_time': self.start_time,
             'end_time': self.end_time,
             'sub': self.sub,
+            'source': self.source,
         }
         for key, value in attrs.items():
             # Mild workaround to ensure that tests pass -- if a field
@@ -375,7 +376,6 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
         sources = xml.findall('source')
         if sources:
             field_data['html5_sources'] = [ele.get('src') for ele in sources]
-            field_data['source'] = ["true"]
 
         track = xml.find('track')
         if track is not None:
