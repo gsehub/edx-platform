@@ -23,6 +23,21 @@ class TestVideo(BaseTestXmodule):
     CATEGORY = "video"
     DATA = SOURCE_XML
 
+    def init_module(self, data=None, model_data=None):
+        DATA = str(self.DATA)
+        if data:
+            self.DATA = data
+
+        MODEL_DATA = dict(self.MODEL_DATA)
+        if model_data:
+            self.MODEL_DATA.update(model_data)
+
+        super(TestVideo, self).setUp()
+
+        self.DATA = DATA
+        self.MODEL_DATA = MODEL_DATA
+
+
     def get_subs_id(self, filename):
         basename = os.path.splitext(os.path.basename(filename))[0]
         return basename.replace('subs_', '').replace('.srt', '')
@@ -267,4 +282,82 @@ class TestVideoGetTranscripts(TestVideo):
 
         with self.assertRaises(KeyError):
             item.get_transcript(subs_id)
+
+
+class TestVideoTrack(TestVideo):
+    """Integration tests: web client + mongo."""
+
+    def test_get_html_source(self):
+        self.maxDiff = None
+        SOURCE_XML = """
+            <video show_captions="true"
+            display_name="A Name"
+                sub="{sub}" track="{track}"
+            start_time="01:00:03" end_time="01:00:10"
+            >
+                <source src="example.mp4"/>
+                <source src="example.webm"/>
+            </video>
+        """
+
+        cases = [
+            {
+                'track': u'[&quot;true&quot;]',
+                'sub': u'a_sub_file.srt.sjson',
+            },
+            {
+                'track': u'[]',
+                'sub': u'a_sub_file.srt.sjson',
+            },
+            {
+                'track': u'[&quot;true&quot;]',
+                'sub': u'',
+            },
+            {
+                'track': u'[]',
+                'sub': u'',
+            }
+        ]
+
+        expected_context = {
+            'data_dir': getattr(self, 'data_dir', None),
+            'caption_asset_path': '/static/subs/',
+            'show_captions': 'true',
+            'display_name': u'A Name',
+            'end': 3610.0,
+            'id': None,
+            'sources': {
+                'main': u'example.mp4',
+                u'mp4': u'example.mp4',
+                u'webm': u'example.webm'
+            },
+            'start': 3603.0,
+            'sub': u'a_sub_file.srt.sjson',
+            'track': '',
+            'youtube_streams': '1.00:OEoXaMPEzfM',
+            'autoplay': settings.FEATURES.get('AUTOPLAY_VIDEOS', True),
+            'yt_test_timeout': 1500,
+            'yt_test_url': 'https://gdata.youtube.com/feeds/api/videos/'
+        }
+
+        for data in cases:
+            DATA = SOURCE_XML.format(
+                track=data['track'],
+                sub=data['sub'],
+            )
+            self.init_module(data=DATA)
+
+            track_url = self.item_descriptor.xmodule_runtime.handler_url(self.item_module, 'download_transcript').rstrip('/?')
+
+            expected_context.update({
+                'track': track_url if self.item_module.track and data['sub'] else None,
+                'sub': data['sub'],
+                'id': self.item_module.location.html_id(),
+            })
+
+            context = self.item_module.render('student_view').content
+            self.assertEqual(
+                context,
+                self.item_module.xmodule_runtime.render_template('video.html', expected_context)
+            )
 
