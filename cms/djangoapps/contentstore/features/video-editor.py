@@ -40,7 +40,7 @@ def correct_video_settings(_step):
 
         # advanced
         ['Display Name', 'Video', False],
-        ['Download Transcript', '', False],
+        ['Download Transcript', 'true', False],
         ['Download Video', '', False],
         ['End Time', '00:00:00', False],
         ['HTML5 Transcript', '', False],
