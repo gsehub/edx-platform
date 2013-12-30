@@ -17,9 +17,6 @@ import unittest
 import datetime
 from mock import Mock
 
-import tempfile
-import textwrap
-
 from . import LogicTest
 from lxml import etree
 from xmodule.modulestore import Location
@@ -109,35 +106,6 @@ class VideoModuleTest(LogicTest):
              '1.25': '',
              '1.50': ''}
         )
-
-    # def test_get_transcript(self):
-    #     self.good_sjson_file = tempfile.NamedTemporaryFile(prefix='subs_tmp', suffix='.srt.sjson')
-    #     self.good_sjson_file.write(textwrap.dedent("""
-    #         {
-    #           "start": [
-    #             270,
-    #             2720
-    #           ],
-    #           "end": [
-    #             2720,
-    #             5430
-    #           ],
-    #           "text": [
-    #             "LILA FISHER: Hi, welcome to Edx.",
-    #             "I'm Lila Fisher, an Edx fellow helping to put"
-    #           ]
-    #         }
-
-    #     """))
-    #     self.good_srt_file.seek(0)
-
-    #     self.bad_sjson_file = tempfile.NamedTemporaryFile(prefix='subs_tmp', suffix='.srt.sjson')
-    #     self.bad_sjson_file.write('Bad data.')
-    #     self.bad_sjson_file.seek(0)
-
-    #     self.assertEqual(
-
-    #     )
 
 
 class VideoDescriptorTest(unittest.TestCase):
