@@ -179,11 +179,11 @@ class CheckboxTest(unittest.TestCase):
     def test_from_json(self):
         self.assertEqual(
             CheckboxTest.delta.from_json("string"),
-            ["string"]
+            ["true"]
         )
 
         self.assertEqual(
             CheckboxTest.delta.values,
-            [{"value": "string"}]
+            [{"value": "true"}]
         )
 

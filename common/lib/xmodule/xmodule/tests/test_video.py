@@ -236,7 +236,7 @@ class VideoDescriptorImportTestCase(unittest.TestCase):
             'start_time': datetime.timedelta(seconds=1),
             'end_time': datetime.timedelta(seconds=60),
             'track': 'http://www.example.com/track',
-            'source': ['http://www.example.com/source.mp4'],
+            'source': ['true'],
             'html5_sources': ['http://www.example.com/source.mp4'],
             'data': ''
         })
@@ -265,7 +265,7 @@ class VideoDescriptorImportTestCase(unittest.TestCase):
             'start_time': datetime.timedelta(seconds=0.0),
             'end_time': datetime.timedelta(seconds=0.0),
             'track': 'http://www.example.com/track',
-            'source': ['http://www.example.com/source.mp4'],
+            'source': ['true'],
             'html5_sources': ['http://www.example.com/source.mp4'],
             'data': ''
         })
