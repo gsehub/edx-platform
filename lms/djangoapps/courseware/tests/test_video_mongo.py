@@ -47,12 +47,10 @@ class TestVideo(BaseTestXmodule):
     def test_video_constructor(self):
         """Make sure that all parameters extracted correclty from xml"""
         context = self.item_module.render('student_view').content
-
         sources = {
             'main': u'example.mp4',
             u'mp4': u'example.mp4',
             u'webm': u'example.webm',
-            u'ogv': u'example.ogv'
         }
 
         expected_context = {
@@ -85,11 +83,11 @@ class TestVideoNonYouTube(TestVideo):
         <video show_captions="true"
         display_name="A Name"
         sub="a_sub_file.srt.sjson"
+        source="[&quot;true&quot;]"
         start_time="01:00:03" end_time="01:00:10"
         >
             <source src="example.mp4"/>
             <source src="example.webm"/>
-            <source src="example.ogv"/>
         </video>
     """
     MODEL_DATA = {
@@ -104,7 +102,6 @@ class TestVideoNonYouTube(TestVideo):
             'main': u'example.mp4',
             u'mp4': u'example.mp4',
             u'webm': u'example.webm',
-            u'ogv': u'example.ogv'
         }
 
         context = self.item_module.render('student_view').content
@@ -135,13 +132,12 @@ class TestVideoNonYouTube(TestVideo):
         SOURCE_XML = """
             <video show_captions="true"
             display_name="A Name"
-                sub="a_sub_file.srt.sjson" source="{source}"
+            sub="a_sub_file.srt.sjson" source="{source}"
             start_time="01:00:03" end_time="01:00:10"
             >
                 {sources}
             </video>
         """
-
         cases = [
             {
                 'source': '[&quot;true&quot;]',
