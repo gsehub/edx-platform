@@ -123,7 +123,7 @@ class XQueueCertInterface(object):
 
         raise NotImplementedError
 
-    def add_cert(self, student, course_id, course=None, userprofile={}):
+    def add_cert(self, student, course_id, course=None, title='None'):
         """
 
         Arguments:
@@ -166,12 +166,9 @@ class XQueueCertInterface(object):
             # for every student
             if course is None:
                 course = courses.get_course_by_id(course_id)
-            #profile = UserProfile.objects.get(user=student)
-            if userprofile:
-                profile_name = userprofile.get('name')
-            else:
-                userprofile = UserProfile.objects.get(user=student).values()[0]
-            profile_name = userprofile.get('name')
+            profile = UserProfile.objects.get(user=student)
+            profile_name = profile.name
+            profile_title = title
 
             # Needed
             self.request.user = student
@@ -227,7 +224,7 @@ class XQueueCertInterface(object):
                         'name':         profile_name,
                         'grade':        grade['grade'],
                         'template_pdf': template_pdf,
-                        'userprofile':  userprofile,
+                        'designation':  profile_title,
                     }
                     new_status = status.generating
                     cert.status = new_status

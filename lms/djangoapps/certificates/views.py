@@ -11,9 +11,8 @@ from certificates.queue import XQueueCertInterface
 from xmodule.course_module import CourseDescriptor
 from xmodule.modulestore.django import modulestore
 
-from student.models import UserProfile
-CmeUserProfile = False
-if settings.MITX_FEATURES.get('USE_CME_REGISTRATION', False):
+use_cme = settings.FEATURES.get('USE_CME_REGISTRATION', False)
+if use_cme:
     from cme_registration.models import CmeUserProfile
 
 
@@ -36,15 +35,17 @@ def request_certificate(request):
             student    = User.objects.get(username=username)
             course_id  = request.POST.get('course_id')
             course     = modulestore().get_instance(course_id, CourseDescriptor.id_to_location(course_id), depth=2)
-            special_selector = None
-            userprofile_dict = UserProfile.objects.get(user=student).values()[0]
-            if CmeUserProfile:
-                userprofile_dict.update(CmeUserProfile.objects.get(user=student).values()[0])
+            title = 'None'
+            if use_cme:
+                titlelist = CmeUserProfile.objects.filter(user=student).values('professional_designation')
+                if len(titlelist):
+                    print "DEBUG: {}".format(repr(titlelist))
+                    title = titlelist[0]['professional_designation']
 
             status = certificate_status_for_student(student, course_id)['status']
             if status in [CertificateStatuses.unavailable, CertificateStatuses.notpassing, CertificateStatuses.error]:
                 # TODO: make xq.add_cert into async celery job w/o return so grading pushes off to util boxen
-                status = xq.add_cert(student, course_id, course=course, userprofile=userprofile_dict)
+                status = xq.add_cert(student, course_id, course=course, title=title)
             return HttpResponse(json.dumps({'add_status': status}), mimetype='application/json')
         return HttpResponse(json.dumps({'add_status': 'ERRORANONYMOUSUSER'}), mimetype='application/json')
 
