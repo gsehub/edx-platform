@@ -4,8 +4,8 @@ import logging
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
-import settings
 from certificates.models import certificate_status_for_student, CertificateStatuses, GeneratedCertificate
 from certificates.queue import XQueueCertInterface
 from xmodule.course_module import CourseDescriptor
@@ -13,7 +13,7 @@ from xmodule.modulestore.django import modulestore
 
 from student.models import UserProfile
 CmeUserProfile = False
-if settings.MITX_FEATURES.get('USE_CME_REGISTRATION', False):
+if settings.FEATURES.get('USE_CME_REGISTRATION', False):
     from cme_registration.models import CmeUserProfile
 
 
@@ -36,7 +36,6 @@ def request_certificate(request):
             student    = User.objects.get(username=username)
             course_id  = request.POST.get('course_id')
             course     = modulestore().get_instance(course_id, CourseDescriptor.id_to_location(course_id), depth=2)
-            special_selector = None
             userprofile_dict = UserProfile.objects.get(user=student).values()[0]
             if CmeUserProfile:
                 userprofile_dict.update(CmeUserProfile.objects.get(user=student).values()[0])
