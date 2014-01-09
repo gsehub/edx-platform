@@ -1,5 +1,6 @@
 from decimal import Decimal
 import unicodecsv
+import logging
 
 from django.db import models
 from django.conf import settings
@@ -65,12 +66,27 @@ class RefundReport(Report):
     fees.
     """
     def rows(self):
+        logger = logging.getLogger(__name__)
+        logger.info("DRAGON start query")
         query = use_read_replica_if_available(
             CertificateItem.objects.select_related('user__profile').filter(
                 status="refunded",
                 refund_requested_time__gte=self.start_date,
                 refund_requested_time__lt=self.end_date,
             ).order_by('refund_requested_time'))
+        for item in query:
+            logger.info("DRAGON order id go")
+            y = item.order_id
+            logger.info("DRAGON profile name go")
+            y = item.user.profile.name
+            logger.info("DRAGON fulfilled time go")
+            y = item.fulfilled_time
+            logger.info("DRAGON refund requested time go")
+            y = item.refund_requested_time
+            logger.info("DRAGON line cost go")
+            y = item.line_cost
+            logger.info("DRAGON service fee")
+            y = item.service_fee
 
         for item in query:
             yield [
