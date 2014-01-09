@@ -195,15 +195,11 @@ def csv_report(request):
     """
     Downloads csv reporting of orderitems
     """
-
-    logger = logging.getLogger(__name__)
-    logger.info("Dragons 1")
     if not _can_download_report(request.user):
         return HttpResponseForbidden(_('You do not have permission to view this page.'))
 
     # TODO temp filler for start letter, end letter
 
-    logger.info("Dragons 2")
     if request.method == 'POST':
         start_date = request.POST.get('start_date', '')
         end_date = request.POST.get('end_date', '')
@@ -227,15 +223,10 @@ def csv_report(request):
         return response
 
     elif request.method == 'GET':
-        logger.info("Dragons 3")
         end_date = datetime.datetime.now(pytz.UTC)
-        logger.info("Dragons 4")
         start_date = end_date - datetime.timedelta(days=30)
-        logger.info("Dragons 5")
         start_letter = ""
-        logger.info("Dragons 6")
         end_letter = ""
-        logger.info("Dragons 7")
         return _render_report_form(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"), start_letter, end_letter, report_type="")
 
     else:
