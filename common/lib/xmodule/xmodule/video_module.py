@@ -462,14 +462,16 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
                 # Delete source field value.
                 self.update_field('source')
                 # Mark download_video checkbox
-                download_video['value'] = ['true']
                 self.update_field('download_video', value=['true'])
+                download_video['value'] = ['true']
+                download_video['explicitly_set'] = True
             # Otherwise, `source` field value will be used.
             else:
                 if not download_video['explicitly_set']:
                     # Mark download_video checkbox
-                    download_video['value'] = ['true']
                     self.update_field('download_video', value=['true'])
+                    download_video['value'] = ['true']
+                    download_video['explicitly_set'] = True
 
             source['non_editable'] = True
         else:
