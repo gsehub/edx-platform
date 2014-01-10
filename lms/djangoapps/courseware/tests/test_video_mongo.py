@@ -80,8 +80,7 @@ class TestVideo(BaseTestXmodule):
             location.org, location.course, location.name
         )
 
-        assets = store.get_all_content_for_course(content_location)
-
+        assets, __ = store.get_all_content_for_course(content_location)
         for asset in assets:
             asset_location = Location(asset["_id"])
             id = StaticContent.get_id_from_location(asset_location)
