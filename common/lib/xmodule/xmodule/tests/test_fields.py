@@ -172,18 +172,3 @@ class RelativeTimeTest(unittest.TestCase):
             RelativeTimeTest.delta.to_json(datetime.timedelta(seconds=39723))
         )
 
-class CheckboxTest(unittest.TestCase):
-
-    delta = Checkbox()
-
-    def test_from_json(self):
-        self.assertEqual(
-            CheckboxTest.delta.from_json("string"),
-            ["true"]
-        )
-
-        self.assertEqual(
-            CheckboxTest.delta.values,
-            [{"value": "true"}]
-        )
-
