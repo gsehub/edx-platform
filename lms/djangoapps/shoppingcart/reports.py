@@ -68,12 +68,18 @@ class RefundReport(Report):
     def rows(self):
         logger = logging.getLogger(__name__)
         logger.info("DRAGON start query")
-        query = use_read_replica_if_available(
+        query1 = use_read_replica_if_available(
             CertificateItem.objects.select_related('user__profile').filter(
                 status="refunded",
                 refund_requested_time__gte=self.start_date,
                 refund_requested_time__lt=self.end_date,
             ).order_by('refund_requested_time'))
+        query2 = use_read_replica_if_available(
+            CertificateItem.objects.select_related('user__profile').filter(
+                status="refunded",
+                refund_requested_time=None,
+            ))
+        query = query1 | query2
         for item in query:
             logger.info("DRAGON order id go")
             y = item.order_id
