@@ -21,15 +21,21 @@ class DraftReorderTestCase(ModuleStoreTestCase):
         sequential = draft_store.get_item(
             Location('i4x', 'test_org', 'import_draft_order', 'sequential', '0f4f7649b10141b0bdc9922dcf94515a', None)
         )
-        drafts = sequential.children
+        verticals = sequential.children
+
         # The order that files are read in from the file system is not guaranteed (cannot rely on
         # alphabetical ordering, for example). Therefore, I have added a lot of variation in filename and desired
         # ordering so that the test reliably failed with the bug, at least on Linux.
-        self.assertEqual(7, len(drafts))
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/z', drafts[0])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/5a05be9d59fc4bb79282c94c9e6b88c7', drafts[1])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/a', drafts[2])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/second', drafts[3])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/b', drafts[4])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/d', drafts[5])
-        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/c', drafts[6])
+        #
+        # 'a', 'b', 'c', 'd', and 'z' are all drafts, with 'index_in_children_list' of
+        #  2 ,  4 ,  6 ,  5 , and  0  respectively.
+        #
+        # '5a05be9d59fc4bb79282c94c9e6b88c7' and 'second' are public verticals.
+        self.assertEqual(7, len(verticals))
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/z', verticals[0])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/5a05be9d59fc4bb79282c94c9e6b88c7', verticals[1])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/a', verticals[2])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/second', verticals[3])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/b', verticals[4])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/d', verticals[5])
+        self.assertEqual(u'i4x://test_org/import_draft_order/vertical/c', verticals[6])
