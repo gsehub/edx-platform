@@ -79,20 +79,8 @@ class RefundReport(Report):
                 status="refunded",
                 refund_requested_time=None,
             ))
+
         query = query1 | query2
-        for item in query:
-            logger.info("DRAGON order id go")
-            y = item.order_id
-            logger.info("DRAGON profile name go")
-            y = item.user.profile.name
-            logger.info("DRAGON fulfilled time go")
-            y = item.fulfilled_time
-            logger.info("DRAGON refund requested time go")
-            y = item.refund_requested_time
-            logger.info("DRAGON line cost go")
-            y = item.line_cost
-            logger.info("DRAGON service fee")
-            y = item.service_fee
 
         for item in query:
             yield [
@@ -197,16 +185,16 @@ class CertificateStatusReport(Report):
             else:
                 dollars_refunded = CertificateItem.verified_certificates_monetary_field_sum(course_id, 'refunded', 'unit_cost')
 
-            course_start_date = "TODO"
-            course_close_date = "TODO"
+            course_reg_start_date = "TODO"
+            course_reg_close_date = "TODO"
             registration_period = "TODO"
 
             yield [
                 university,
                 course,
                 "N/A",
-                course_start_date,
-                course_close_date,
+                course_reg_start_date,
+                course_reg_close_date,
                 registration_period,
                 total_enrolled,
                 audit_enrolled,
