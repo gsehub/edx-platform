@@ -26,10 +26,12 @@ from xmodule.editing_module import TabsEditingDescriptor
 from xmodule.raw_module import EmptyDataRawDescriptor
 from xmodule.xml_module import is_pointer_tag, name_to_pathname, deserialize_field
 from xmodule.modulestore import Location
+from xmodule.modulestore.inheritance import own_metadata
 from xblock.fields import Scope, String, Boolean, List, Integer, ScopeIds
 from xmodule.fields import RelativeTime, Checkbox
 
 from xmodule.modulestore.inheritance import InheritanceKeyValueStore
+from xmodule.modulestore.exceptions import ItemNotFoundError
 from xblock.runtime import DbModel
 log = logging.getLogger(__name__)
 
@@ -91,10 +93,15 @@ class VideoFields(object):
         default=datetime.timedelta(seconds=0)
     )
     #front-end code of video player checks logical validity of (start_time, end_time) pair.
-
-    source = Checkbox(
-        help="Allow to download the video. This appears as a link beneath the video.",
+    source = String(
+        help="The external URL to download the video.",
         display_name="Download Video",
+        scope=Scope.settings,
+        default=""
+    )
+    download_video = Checkbox(
+        help="Allow to download the video. This appears as a link beneath the video.",
+        display_name="Allow to Download Video",
         scope=Scope.settings,
         values=[
             {"value": "true"},
@@ -166,8 +173,15 @@ class VideoModule(VideoFields, XModule):
         get_ext = lambda filename: filename.rpartition('.')[-1]
         sources = {get_ext(src): src for src in self.html5_sources}
 
-        if self.source and self.html5_sources:
-            sources['main'] = self.html5_sources[0]
+        metadata_fields = self.descriptor.editable_metadata_fields
+        download_video = metadata_fields['download_video']
+        source = metadata_fields.get('source', None)
+
+        if download_video['value']:
+            if source and source['value']:
+                sources['main'] = source['value']
+            elif self.html5_sources:
+                sources['main'] = self.html5_sources[0]
 
         return self.system.render_template('video.html', {
             'youtube_streams': _create_youtube_string(self),
@@ -268,6 +282,7 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
             'end_time': self.end_time,
             'sub': self.sub,
             'source': self.source,
+            'download_video': self.download_video,
         }
         for key, value in attrs.items():
             # Mild workaround to ensure that tests pass -- if a field
@@ -407,6 +422,60 @@ class VideoDescriptor(VideoFields, TabsEditingDescriptor, EmptyDataRawDescriptor
 
         return field_data
 
+    def update_field(self, field_name='', value=None):
+        try:
+            store = self.system.modulestore
+            field = self.fields[field_name]
+            item = store.get_item(self.location)
+
+            # update existing metadata
+            if value is None:
+                field.delete_from(item)
+            else:
+                value = field.from_json(value)
+                field.write_to(item, value)
+
+        except Exception as err:
+            log.debug(u"Unable to save item.\nERROR:\n{}".format(str(err)))
+            return
+
+        # Save the data that we've just changed to the underlying
+        # MongoKeyValueStore before we update the mongo datastore.
+        item.save()
+        # commit to datastore
+        store.update_metadata(self.location, own_metadata(item))
+
+    @property
+    def editable_metadata_fields(self):
+        editable_fields = super(VideoDescriptor, self).editable_metadata_fields
+
+        source = editable_fields['source']
+        download_video = editable_fields['download_video']
+        html5_sources = editable_fields['html5_sources']
+
+        if source['value']:
+            # If `source` field value exist in the `html5_sources` field values,
+            # then delete `source` field value and use value from `html5_sources`
+            # field.
+            if source['value'] in html5_sources['value']:
+                editable_fields.pop('source')
+                # Delete source field value.
+                self.update_field('source')
+                # Mark download_video checkbox
+                download_video['value'] = ['true']
+                self.update_field('download_video', value=['true'])
+            # Otherwise, `source` field value will be used.
+            else:
+                if not download_video['explicitly_set']:
+                    # Mark download_video checkbox
+                    download_video['value'] = ['true']
+                    self.update_field('download_video', value=['true'])
+
+            source['non_editable'] = True
+        else:
+            editable_fields.pop('source')
+
+        return editable_fields
 
 def _create_youtube_string(module):
     """
