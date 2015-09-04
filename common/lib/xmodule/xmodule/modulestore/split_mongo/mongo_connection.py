@@ -6,6 +6,7 @@ import cPickle as pickle
 import math
 import zlib
 import pymongo
+import pylru
 import pytz
 import re
 from contextlib import contextmanager
@@ -215,6 +216,9 @@ class CourseStructureCache(object):
     If the 'course_structure_cache' doesn't exist, then don't do anything for
     for set and get.
     """
+    MEMORY_CACHE_SIZE = 50
+    _memory_cache = pylru.lrucache(MEMORY_CACHE_SIZE)
+
     def __init__(self):
         self.no_cache_found = False
         try:
@@ -224,6 +228,9 @@ class CourseStructureCache(object):
 
     def get(self, key, course_context=None):
         """Pull the compressed, pickled struct data from cache and deserialize."""
+        if str(key) in self._memory_cache:
+            return self._memory_cache[str(key)]
+
         if self.no_cache_found:
             return None
 
@@ -241,10 +248,15 @@ class CourseStructureCache(object):
             pickled_data = zlib.decompress(compressed_pickled_data)
             tagger.measure('uncompressed_size', len(pickled_data))
 
-            return pickle.loads(pickled_data)
+            structure = pickle.loads(pickled_data)
+            self._memory_cache[str(key)] = structure
+
+            return structure
 
     def set(self, key, structure, course_context=None):
         """Given a structure, will pickle, compress, and write to cache."""
+        self._memory_cache[str(key)] = structure
+
         if self.no_cache_found:
             return None
 
