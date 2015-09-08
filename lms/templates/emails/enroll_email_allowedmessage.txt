@@ -1,43 +1,9 @@
 <%! from django.utils.translation import ugettext as _ %>
 
-${_("Dear student,")}
+Thank you for registering for Including Ourselves in the Change Equation: Personal Learning for Organizational Performance. An account that will allow you to access course materials has been created for you. Please activate your account by clicking on the link below. If clicking directly does not work, please copy and paste the link directly into your browser.
 
-${_("You have been invited to join {course_name} at {site_name} by a "
-	"member of the course staff.").format(
-		course_name=course.display_name_with_default,
-		site_name=site_name
-	)}
-% if is_shib_course:
-% if auto_enroll:
+https://openedx.gse.harvard.edu/login
 
-${_("To access the course visit {course_url} and login.").format(course_url=course_url)}
-% elif course_about_url is not None:
+If you are not officially enrolled in this course and would like to explore professional education offerings through the Harvard Graduate School of Education, please visit https://www.gse.harvard.edu/ppe.
 
-${_("To access the course visit {course_about_url} and register for the course.").format(
-		course_about_url=course_about_url)}
-% endif
-% else:
-
-${_("To finish your registration, please visit {registration_url} and fill "
-	"out the registration form making sure to use {email_address} in the E-mail field.").format(
-		registration_url=registration_url,
-		email_address=email_address
-	)}
-% if auto_enroll:
-${_("Once you have registered and activated your account, you will see "
-	"{course_name} listed on your dashboard.").format(
-		course_name=course.display_name_with_default
-	)}
-% elif course_about_url is not None:
-${_("Once you have registered and activated your account, visit {course_about_url} "
-	"to join the course.").format(course_about_url=course_about_url)}
-% else:
-${_("You can then enroll in {course_name}.").format(course_name=course.display_name_with_default)}
-% endif
-% endif
-
-----
-${_("This email was automatically sent from {site_name} to "
-	"{email_address}").format(
-		site_name=site_name, email_address=email_address
-	)}
+For assistance with accessing the course or any related materials, please reply to this email or contact Kathleen McGreal at 617-384-7478.
