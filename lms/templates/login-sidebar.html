@@ -17,11 +17,14 @@ from django.core.urlresolvers import reverse
 
 <div class="cta cta-help">
   <h3>${_("Not Enrolled?")}</h3>
-  <p>Before you <a href="${reverse('register_user')}">register on this platform</a>, you must apply for this program with <a href="https://www.gse.harvard.edu/ppe">HGSE Professional Education</a>.</p>
+  <p><a href="${reverse('register_user')}">${_("Sign up for {platform_name} today!").format(platform_name=platform_name)}</a></p>
 
   ## Disable help unless the FAQ marketing link is enabled
   % if settings.MKTG_URL_LINK_MAP.get('FAQ'):
     <h3>${_("Need Help?")}</h3>
-    <p>Looking for help to log into your HGSE Professional Education account? Please email <a href="mailto:ppeIOCE@gse.harvard.edu">ppeIOCE@gse.harvard.edu</a>.</p>
+    <p>${_("Looking for help in logging in or with your {platform_name} account?").format(platform_name=platform_name)}
+    <a href="${marketing_link('FAQ')}">
+        ${_("View our help section for answers to commonly asked questions.")}
+    </a></p>
   % endif
 </div>
