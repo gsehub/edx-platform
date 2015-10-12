@@ -269,9 +269,9 @@ def forum_form_discussion(request, course_key):
             'threads': json.dumps(threads),
             'thread_pages': query_params['num_pages'],
             'user_info': json.dumps(user_info, default=lambda x: None),
-            'can_create_comment': _attr_safe_json(
+            'can_create_comment': json.dumps(
                 has_permission(request.user, "create_comment", course.id)),
-            'can_create_subcomment': _attr_safe_json(
+            'can_create_subcomment': json.dumps(
                 has_permission(request.user, "create_sub_comment", course.id)),
             'can_create_thread': has_permission(request.user, "create_thread", course.id),
             'flag_moderator': bool(

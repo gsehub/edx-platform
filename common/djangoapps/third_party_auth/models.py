@@ -452,7 +452,7 @@ class LTIProviderConfig(ProviderConfig):
     )
 
     lti_consumer_secret = models.CharField(
-        default=long_token,
+        default='default long token',
         max_length=255,
         help_text=(
             'The shared secret that the LTI Tool Consumer will use to '
