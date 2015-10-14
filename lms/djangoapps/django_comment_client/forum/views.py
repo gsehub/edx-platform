@@ -373,9 +373,9 @@ def single_thread(request, course_key, discussion_id, thread_id):
             'csrf': csrf(request)['csrf_token'],
             'init': '',   # TODO: What is this?
             'user_info': json.dumps(user_info),
-            'can_create_comment': _attr_safe_json(
+            'can_create_comment': json.dumps(
                 has_permission(request.user, "create_comment", course.id)),
-            'can_create_subcomment': _attr_safe_json(
+            'can_create_subcomment': json.dumps(
                 has_permission(request.user, "create_sub_comment", course.id)),
             'can_create_thread': has_permission(request.user, "create_thread", course.id),
             'annotated_content_info': json.dumps(annotated_content_info),
