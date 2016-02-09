@@ -16,7 +16,6 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME, authenticate, login
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
 if settings.FEATURES.get('AUTH_USE_CAS'):
@@ -49,6 +48,7 @@ from ratelimitbackend.exceptions import RateLimitException
 import student.views
 from xmodule.modulestore.django import modulestore
 from opaque_keys.edx.locations import SlashSeparatedCourseKey
+from util.validation_utils import validate_email
 
 log = logging.getLogger("edx.external_auth")
 AUDIT_LOG = logging.getLogger("audit")

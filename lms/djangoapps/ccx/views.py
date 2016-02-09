@@ -19,7 +19,6 @@ from django.http import (
 )
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 from django.http import Http404
 from django.shortcuts import redirect
 from django.utils.translation import ugettext as _
@@ -41,6 +40,7 @@ from student.roles import CourseCcxCoachRole
 from instructor.offline_gradecalc import student_grades
 from instructor.views.api import _split_input_list
 from instructor.views.tools import get_student_from_identifier
+from util.validation_utils import validate_email
 
 from .models import CustomCourseForEdX, CcxMembership
 from .overrides import (

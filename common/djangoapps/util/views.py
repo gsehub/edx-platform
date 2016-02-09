@@ -4,7 +4,7 @@ import sys
 from functools import wraps
 
 from django.conf import settings
-from django.core.validators import ValidationError, validate_email
+from django.core.validators import ValidationError
 from django.views.decorators.csrf import requires_csrf_token
 from django.views.defaults import server_error
 from django.http import (Http404, HttpResponse, HttpResponseNotAllowed,
@@ -19,6 +19,7 @@ import track.views
 
 from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
+from util.validation_utils import validate_email
 
 log = logging.getLogger(__name__)
 

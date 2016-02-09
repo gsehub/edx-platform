@@ -4,13 +4,14 @@ import datetime
 from pytz import UTC
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
-from django.core.validators import validate_email, validate_slug, ValidationError
+from django.core.validators import validate_slug, ValidationError
 
 from student.models import User, UserProfile, Registration
 from student import views as student_views
 from util.model_utils import emit_setting_changed_event
 
 from openedx.core.lib.api.view_utils import add_serializer_errors
+from util.validation_utils import validate_email
 
 from ..errors import (
     AccountUpdateError, AccountValidationError, AccountUsernameInvalid, AccountPasswordInvalid,

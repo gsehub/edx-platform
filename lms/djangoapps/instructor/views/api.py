@@ -19,7 +19,6 @@ from django.core.exceptions import ValidationError, PermissionDenied
 from django.core.mail.message import EmailMessage
 from django.db import IntegrityError
 from django.core.urlresolvers import reverse
-from django.core.validators import validate_email
 from django.utils.translation import ugettext as _
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseForbidden, HttpResponseNotFound
 from django.utils.html import strip_tags
@@ -93,6 +92,8 @@ from submissions import api as sub_api  # installed from the edx-submissions rep
 from certificates import api as certs_api
 
 from bulk_email.models import CourseEmail
+
+from util.validation_utils import validate_email
 
 from .tools import (
     dump_student_extensions,
@@ -593,7 +594,7 @@ def students_update_enrollment(request, course_id):
             language = get_user_email_language(user)
 
         try:
-            # Use django.core.validators.validate_email to check email address
+            # Use custom version of django.core.validators.validate_email to check email address
             # validity (obviously, cannot check if email actually /exists/,
             # simply that it is plausibly valid)
             validate_email(email)  # Raises ValidationError if invalid
