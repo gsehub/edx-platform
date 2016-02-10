@@ -20,7 +20,7 @@ from django.contrib import messages
 from django.core.context_processors import csrf
 from django.core import mail
 from django.core.urlresolvers import reverse
-from django.core.validators import validate_email, ValidationError
+from django.core.validators import ValidationError
 from django.db import IntegrityError, transaction
 from django.http import (HttpResponse, HttpResponseBadRequest, HttpResponseForbidden,
                          HttpResponseServerError, Http404)
@@ -53,6 +53,7 @@ from student.models import (
     create_comments_service_user, PasswordHistory, UserSignupSource,
     DashboardConfiguration, LinkedInAddToProfileConfiguration, ManualEnrollmentAudit, ALLOWEDTOENROLL_TO_ENROLLED)
 from student.forms import AccountCreationForm, PasswordResetFormNoActive
+from util.validation_utils import validate_email
 
 from verify_student.models import SoftwareSecurePhotoVerification  # pylint: disable=import-error
 from certificates.models import CertificateStatuses, certificate_status_for_student
